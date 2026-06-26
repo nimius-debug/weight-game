@@ -38,7 +38,8 @@ export async function sendSmsInvite({
   const accountSid = process.env.TWILIO_ACCOUNT_SID;
   const authToken = process.env.TWILIO_AUTH_TOKEN;
   const from = process.env.TWILIO_PHONE_NUMBER;
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? "";
+  // Strip any trailing slash so we don't build "https://host//u/..."
+  const baseUrl = (process.env.NEXT_PUBLIC_BASE_URL ?? "").replace(/\/+$/, "");
 
   if (!accountSid || !authToken || !from) {
     return { to, ok: false, detail: "Twilio env vars not set" };
