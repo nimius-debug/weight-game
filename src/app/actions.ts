@@ -137,17 +137,29 @@ export async function createChallengeAction(
   });
 
   // Send SMS invites outside the transaction so a failed text doesn't roll back the challenge.
-  await Promise.allSettled(
-    invites.map((inv) =>
-      sendSmsInvite({ ...inv, challengeName: name }).catch((err) =>
-        console.error("SMS invite failed for", inv.to, err),
-      ),
-    ),
+  const smsResults = await Promise.all(
+    invites.map((inv) => sendSmsInvite({ ...inv, challengeName: name })),
   );
 
   revalidatePath("/admin");
   revalidatePath("/leaderboard");
-  return { ok: true, message: `Created "${name}" with ${roster.length} players.` };
+
+  let smsSummary = "";
+  if (invites.length > 0) {
+    const sent = smsResults.filter((r) => r.ok).length;
+    const failed = smsResults.filter((r) => !r.ok);
+    smsSummary = ` Texted ${sent}/${invites.length} players.`;
+    if (failed.length > 0) {
+      smsSummary += ` Failed: ${failed
+        .map((f) => `${f.to} (${f.detail})`)
+        .join(", ")}.`;
+    }
+  }
+
+  return {
+    ok: true,
+    message: `Created "${name}" with ${roster.length} players.${smsSummary}`,
+  };
 }
 
 /** Player self-reports their starting weight (once, with a scale photo). */
