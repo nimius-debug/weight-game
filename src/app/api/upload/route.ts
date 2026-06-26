@@ -12,8 +12,15 @@ export async function POST(request: Request): Promise<NextResponse> {
     return NextResponse.json({ error: "Image must be under 10 MB." }, { status: 400 });
   }
 
+  // Normalize HEIC/HEIF (iPhone) to jpeg for Vercel Blob compatibility
+  const mimeType = file.type === "image/heic" || file.type === "image/heif"
+    ? "image/jpeg"
+    : file.type || "image/jpeg";
+  const ext = mimeType.split("/")[1].replace("jpeg", "jpg");
+  const filename = `scale-${Date.now()}.${ext}`;
+
   try {
-    const blob = await put(file.name, file, { access: "public" });
+    const blob = await put(filename, file, { access: "public", contentType: mimeType });
     return NextResponse.json({ url: blob.url });
   } catch (error) {
     return NextResponse.json(
