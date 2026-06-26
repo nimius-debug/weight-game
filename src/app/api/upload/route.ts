@@ -1,31 +1,24 @@
-import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
+import { put } from "@vercel/blob";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request): Promise<NextResponse> {
-  const body = (await request.json()) as HandleUploadBody;
+  const form = await request.formData();
+  const file = form.get("file") as File | null;
+
+  if (!file || !file.type.startsWith("image/")) {
+    return NextResponse.json({ error: "An image file is required." }, { status: 400 });
+  }
+  if (file.size > 10 * 1024 * 1024) {
+    return NextResponse.json({ error: "Image must be under 10 MB." }, { status: 400 });
+  }
 
   try {
-    const jsonResponse = await handleUpload({
-      body,
-      request,
-      onBeforeGenerateToken: async () => ({
-        allowedContentTypes: [
-          "image/jpeg",
-          "image/png",
-          "image/webp",
-          "image/heic",
-        ],
-        maximumSizeInBytes: 10 * 1024 * 1024,
-      }),
-      onUploadCompleted: async () => {
-        // No-op: URL is persisted by the server action after the client submits.
-      },
-    });
-    return NextResponse.json(jsonResponse);
+    const blob = await put(file.name, file, { access: "public" });
+    return NextResponse.json({ url: blob.url });
   } catch (error) {
     return NextResponse.json(
       { error: (error as Error).message },
-      { status: 400 },
+      { status: 500 },
     );
   }
 }
