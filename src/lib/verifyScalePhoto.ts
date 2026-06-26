@@ -14,7 +14,7 @@ export async function verifyScalePhoto(
   let text = "";
   try {
     const msg = await client.messages.create({
-      model: "claude-haiku-4-5-20251001",
+      model: "claude-sonnet-4-6",
       max_tokens: 64,
       messages: [
         {
@@ -23,7 +23,7 @@ export async function verifyScalePhoto(
             { type: "image", source: { type: "url", url: photoUrl } },
             {
               type: "text",
-              text: "What number is displayed on this digital scale? Reply with ONLY the numeric value shown (e.g. '185.2'). If you cannot read it clearly, reply 'unreadable'.",
+              text: `Look carefully at the digital scale display in this image. Read the exact number shown — pay close attention to each digit, especially distinguishing 0 from 4, 1 from 7, 6 from 8, etc. Reply with ONLY the numeric value exactly as shown on the display (e.g. '204.8'). If you genuinely cannot read it, reply 'unreadable'.`,
             },
           ],
         },
