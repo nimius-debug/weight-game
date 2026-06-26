@@ -68,11 +68,42 @@ export default async function AdminPage({
                 className="rounded-lg border border-slate-200 p-3 dark:border-slate-800"
               >
                 <div className="font-medium">
-                  {p.name} · {p.baselineWeight} {p.unit}
+                  {p.name} ·{" "}
+                  {p.baselineWeight !== null ? (
+                    `${p.baselineWeight} ${p.unit}`
+                  ) : (
+                    <span className="text-xs font-normal text-amber-500">
+                      baseline pending
+                    </span>
+                  )}
                 </div>
                 <code className="break-all text-xs text-brand-dark">
                   {base}/u/{p.accessToken}
                 </code>
+                <div className="mt-1.5 flex gap-4 text-xs">
+                  {p.baselinePhotoUrl ? (
+                    <a
+                      href={p.baselinePhotoUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-brand-dark underline"
+                    >
+                      View baseline photo
+                    </a>
+                  ) : (
+                    <span className="text-slate-400">No baseline photo yet</span>
+                  )}
+                  {p.finalPhotoUrl && (
+                    <a
+                      href={p.finalPhotoUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-brand-dark underline"
+                    >
+                      View final photo
+                    </a>
+                  )}
+                </div>
               </li>
             ))}
             {roster.length === 0 && (

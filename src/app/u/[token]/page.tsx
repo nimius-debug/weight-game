@@ -9,6 +9,8 @@ import { dayKeyOf } from "@/lib/dates";
 import { formatPctLost, formatWeight, streakFlame } from "@/lib/format";
 import { Sparkline } from "@/components/Sparkline";
 import { LogWeightForm } from "./LogWeightForm";
+import { SetBaselineForm } from "./SetBaselineForm";
+import { SetFinalWeightForm } from "./SetFinalWeightForm";
 
 export const dynamic = "force-dynamic";
 
@@ -54,14 +56,24 @@ export default async function DashboardPage({
       </header>
 
       <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-        <LogWeightForm
-          token={token}
-          unit={participant.unit}
-          lastWeight={lastWeight}
-        />
+        {participant.baselineWeight === null && challenge.status !== "ended" ? (
+          <SetBaselineForm token={token} unit={participant.unit} />
+        ) : challenge.status === "ended" && participant.finalPhotoUrl === null ? (
+          <SetFinalWeightForm token={token} unit={participant.unit} />
+        ) : challenge.status === "ended" ? (
+          <p className="text-center text-sm text-slate-500">
+            Challenge complete — your final submission is recorded.
+          </p>
+        ) : (
+          <LogWeightForm
+            token={token}
+            unit={participant.unit}
+            lastWeight={lastWeight}
+          />
+        )}
       </section>
 
-      {me && (
+      {me && participant.baselineWeight !== null && (
         <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <Sparkline values={dailyTrend.length ? dailyTrend : trend} />
           <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
@@ -69,6 +81,7 @@ export default async function DashboardPage({
               label="Baseline"
               value={formatWeight(participant.baselineWeight, participant.unit)}
             />
+
             <Fact
               label="Latest"
               value={formatWeight(me.latestWeight, participant.unit)}

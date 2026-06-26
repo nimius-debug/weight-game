@@ -64,7 +64,7 @@ export function CreateChallengeForm({ adminToken }: { adminToken: string }) {
 
       <fieldset className="space-y-3">
         <legend className="text-sm font-medium text-slate-500">
-          Players (name + starting weight)
+          Players (baseline weight optional — players can self-report)
         </legend>
         {ROWS.map((i) => (
           <div key={i} className="grid grid-cols-12 gap-2">
