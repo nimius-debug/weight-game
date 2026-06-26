@@ -35,6 +35,13 @@ export async function POST(request: Request): Promise<NextResponse> {
     const blob = await put(filename, file, { access: "public", contentType: mimeType });
     return NextResponse.json({ url: blob.url });
   } catch (error) {
+    console.error("[upload] put() failed", {
+      rawType: file.type,
+      mimeType,
+      filename,
+      size: file.size,
+      error: (error as Error).message,
+    });
     return NextResponse.json(
       { error: (error as Error).message },
       { status: 500 },
