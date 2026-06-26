@@ -6,6 +6,7 @@ import { db } from "@/db";
 import { challenges, participants, users, weighIns } from "@/db/schema";
 import { logWeighIn, WeighInError } from "@/lib/weighins";
 import { getParticipantByToken } from "@/lib/queries";
+import { verifyScalePhoto } from "@/lib/verifyScalePhoto";
 
 export interface ActionResult {
   ok: boolean;
@@ -139,6 +140,9 @@ export async function setBaselineAction(
     return { ok: false, message: "You've already set your baseline weight." };
   }
 
+  const verification = await verifyScalePhoto(photoUrl, weight, participant.unit);
+  if (!verification.ok) return { ok: false, message: verification.message };
+
   await db
     .update(participants)
     .set({ baselineWeight: weight, baselinePhotoUrl: photoUrl })
@@ -182,6 +186,9 @@ export async function setFinalWeightAction(
   if (participant.finalPhotoUrl !== null) {
     return { ok: false, message: "You've already submitted your final weigh-in." };
   }
+
+  const verification = await verifyScalePhoto(photoUrl, weight, participant.unit);
+  if (!verification.ok) return { ok: false, message: verification.message };
 
   await db.transaction(async (tx) => {
     await tx
