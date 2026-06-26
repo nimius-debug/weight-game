@@ -22,7 +22,8 @@
     "next": "^15.5.19",
     "postgres": "^3.4.5",
     "react": "19.0.0",
-    "react-dom": "19.0.0"
+    "react-dom": "19.0.0",
+    "twilio": "^6.0.2"
   },
   "devDependencies": {
     "@types/node": "^22.10.7",

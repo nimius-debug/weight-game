@@ -7,6 +7,7 @@ import { challenges, participants, users, weighIns } from "@/db/schema";
 import { logWeighIn, WeighInError } from "@/lib/weighins";
 import { getParticipantByToken } from "@/lib/queries";
 import { verifyScalePhoto } from "@/lib/verifyScalePhoto";
+import { sendSmsInvite } from "@/lib/sms";
 
 export interface ActionResult {
   ok: boolean;
@@ -95,6 +96,8 @@ export async function createChallengeAction(
     return { ok: false, message: "Add at least one participant." };
   }
 
+  const invites: { to: string; playerName: string; accessToken: string }[] = [];
+
   await db.transaction(async (tx) => {
     const [challenge] = await tx
       .insert(challenges)
@@ -117,14 +120,30 @@ export async function createChallengeAction(
           .values({ name: p.name, phone: null })
           .returning();
       }
-      await tx.insert(participants).values({
-        challengeId: challenge.id,
-        userId: user.id,
-        baselineWeight: p.baseline,
-        unit: p.unit,
-      });
+      const [participant] = await tx
+        .insert(participants)
+        .values({
+          challengeId: challenge.id,
+          userId: user.id,
+          baselineWeight: p.baseline,
+          unit: p.unit,
+        })
+        .returning();
+
+      if (p.phone) {
+        invites.push({ to: p.phone, playerName: p.name, accessToken: participant.accessToken });
+      }
     }
   });
+
+  // Send SMS invites outside the transaction so a failed text doesn't roll back the challenge.
+  await Promise.allSettled(
+    invites.map((inv) =>
+      sendSmsInvite({ ...inv, challengeName: name }).catch((err) =>
+        console.error("SMS invite failed for", inv.to, err),
+      ),
+    ),
+  );
 
   revalidatePath("/admin");
   revalidatePath("/leaderboard");
