@@ -21,6 +21,14 @@ export async function logWeighInAction(
 ): Promise<ActionResult> {
   const weight = Number(formData.get("weight"));
   const unit = (formData.get("unit") as "lb" | "kg") || undefined;
+  const photoUrl = String(formData.get("photoUrl") || "").trim();
+
+  if (!photoUrl.startsWith("https://")) {
+    return { ok: false, message: "A scale photo is required." };
+  }
+
+  const verification = await verifyScalePhoto(photoUrl, weight, unit ?? "lb");
+  if (!verification.ok) return { ok: false, message: verification.message };
 
   try {
     await logWeighIn({ token, weight, unit, source: "web" });
