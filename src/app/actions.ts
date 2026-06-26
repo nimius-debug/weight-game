@@ -102,10 +102,21 @@ export async function createChallengeAction(
       .returning();
 
     for (const p of roster) {
-      const [user] = await tx
-        .insert(users)
-        .values({ name: p.name, phone: p.phone })
-        .returning();
+      let user: typeof users.$inferSelect;
+      if (p.phone) {
+        // Reuse existing user by phone to avoid unique-constraint failure
+        // when the same players join a subsequent challenge.
+        [user] = await tx
+          .insert(users)
+          .values({ name: p.name, phone: p.phone })
+          .onConflictDoUpdate({ target: users.phone, set: { name: p.name } })
+          .returning();
+      } else {
+        [user] = await tx
+          .insert(users)
+          .values({ name: p.name, phone: null })
+          .returning();
+      }
       await tx.insert(participants).values({
         challengeId: challenge.id,
         userId: user.id,
@@ -219,4 +230,32 @@ export async function setFinalWeightAction(
     ok: true,
     message: `Final weight of ${weight.toFixed(1)} ${participant.unit} recorded. Great effort!`,
   };
+}
+
+/** Admin marks a challenge as ended. */
+export async function endChallengeAction(formData: FormData) {
+  try {
+    assertAdmin(formData.get("adminToken"));
+  } catch {
+    return;
+  }
+  const id = String(formData.get("challengeId") || "");
+  if (!id) return;
+  await db.update(challenges).set({ status: "ended" }).where(eq(challenges.id, id));
+  revalidatePath("/admin");
+  revalidatePath("/leaderboard");
+}
+
+/** Admin permanently deletes a challenge (cascades to participants + weigh-ins). */
+export async function deleteChallengeAction(formData: FormData) {
+  try {
+    assertAdmin(formData.get("adminToken"));
+  } catch {
+    return;
+  }
+  const id = String(formData.get("challengeId") || "");
+  if (!id) return;
+  await db.delete(challenges).where(eq(challenges.id, id));
+  revalidatePath("/admin");
+  revalidatePath("/leaderboard");
 }

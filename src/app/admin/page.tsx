@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getActiveChallenge, getRoster } from "@/lib/queries";
 import { CreateChallengeForm } from "./CreateChallengeForm";
+import { ChallengeControls } from "./ChallengeControls";
 
 export const dynamic = "force-dynamic";
 
@@ -55,12 +56,15 @@ export default async function AdminPage({
 
       {active && (
         <section className="space-y-3">
-          <h2 className="font-semibold">
-            Active: {active.name}{" "}
-            <span className="text-sm font-normal text-slate-400">
-              ({active.startDate} → {active.endDate})
-            </span>
-          </h2>
+          <div className="flex flex-wrap items-center gap-3">
+            <h2 className="font-semibold">
+              Active: {active.name}{" "}
+              <span className="text-sm font-normal text-slate-400">
+                ({active.startDate} → {active.endDate})
+              </span>
+            </h2>
+            <ChallengeControls challengeId={active.id} adminToken={token!} />
+          </div>
           <ul className="space-y-2 text-sm">
             {roster.map((p) => (
               <li
