@@ -50,6 +50,8 @@ export async function getRoster(challengeId: string) {
       name: users.name,
       phone: users.phone,
       baselineWeight: participants.baselineWeight,
+      baselinePhotoUrl: participants.baselinePhotoUrl,
+      finalPhotoUrl: participants.finalPhotoUrl,
       unit: participants.unit,
       accessToken: participants.accessToken,
     })
@@ -101,7 +103,7 @@ export async function getLeaderboard(
     {
       participantId: string;
       name: string;
-      baselineWeight: number;
+      baselineWeight: number | null;
       unit: "lb" | "kg";
       weighIns: { day: string; weight: number }[];
     }
@@ -126,11 +128,16 @@ export async function getLeaderboard(
     }
   }
 
+  // Only score participants who have set their baseline weight.
+  const scoreable = [...byParticipant.values()].filter(
+    (p): p is typeof p & { baselineWeight: number } => p.baselineWeight !== null,
+  );
+
   const leaderboard = computeLeaderboard({
     startDate: challenge.startDate,
     endDate: challenge.endDate,
     today: todayKey(),
-    participants: [...byParticipant.values()],
+    participants: scoreable,
   });
 
   return { challenge, rows: leaderboard };

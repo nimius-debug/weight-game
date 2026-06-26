@@ -50,7 +50,9 @@ export const participants = pgTable(
     userId: uuid("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    baselineWeight: doublePrecision("baseline_weight").notNull(),
+    baselineWeight: doublePrecision("baseline_weight"),
+    baselinePhotoUrl: text("baseline_photo_url"),
+    finalPhotoUrl: text("final_photo_url"),
     unit: weightUnit("unit").notNull().default("lb"),
     // Passwordless personal-link token: /u/[accessToken]
     accessToken: uuid("access_token").notNull().defaultRandom().unique(),

@@ -7,7 +7,8 @@ export function formatPctLost(pctLost: number): string {
   return "0.0%";
 }
 
-export function formatWeight(weight: number, unit: "lb" | "kg"): string {
+export function formatWeight(weight: number | null, unit: "lb" | "kg"): string {
+  if (weight === null) return "—";
   return `${weight.toFixed(1)} ${unit}`;
 }
 

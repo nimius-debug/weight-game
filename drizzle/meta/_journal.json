@@ -8,6 +8,13 @@
       "when": 1781318706120,
       "tag": "0000_careless_warhawk",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1782443189184,
+      "tag": "0001_lively_tyger_tiger",
+      "breakpoints": true
     }
   ]
 }
