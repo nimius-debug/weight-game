@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
-import { upload } from "@vercel/blob/client";
 import { logWeighInAction, type ActionResult } from "@/app/actions";
 
 function SubmitButton({ uploading }: { uploading: boolean }) {
@@ -44,11 +43,12 @@ export function LogWeightForm({
     setUploading(true);
     setUploadError("");
     try {
-      const blob = await upload(file.name, file, {
-        access: "public",
-        handleUploadUrl: "/api/upload",
-      });
-      setPhotoUrl(blob.url);
+      const form = new FormData();
+      form.append("file", file);
+      const res = await fetch("/api/upload", { method: "POST", body: form });
+      if (!res.ok) throw new Error("Upload failed");
+      const { url } = (await res.json()) as { url: string };
+      setPhotoUrl(url);
     } catch {
       setUploadError("Photo upload failed. Please try again.");
     } finally {
